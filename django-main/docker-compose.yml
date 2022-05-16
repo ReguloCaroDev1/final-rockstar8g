@@ -1,0 +1,42 @@
+version: '3'
+services:
+  postgres_db:
+    image: postgres:14-alpine
+    container_name: "postgres09"
+    environment:
+      - "POSTGRES_PASSWORD=123"
+      - "POSTGRES_DB=francisco_elisea_db"
+      - "POSTGRES_USER=francisco_elisea"
+    ports:
+      - "10009:5509"
+    volumes:
+      - "/home/francisco_elisea/postgres:/usr/src/postgres"
+    networks:
+      - our-library-net
+    command: -p 5509
+
+  web:
+    build: .
+    command: bash -c "python manage.py makemigrations && python manage.py migrate && python manage.py runserver 0.0.0.0:8009"
+    container_name: "django09"
+    depends_on:
+      - postgres_db
+    environment:
+      - "PSQL_DBNAME=francisco_elisea_db"
+      - "PSQL_USERNAME=francisco_elisea"
+      - "PSQL_PASS=123"
+      - "PSQL_HOST=postgres_db"
+      - "PSQL_PORT=5509"
+      - "JWT_TOKEN_TIME=120"
+    volumes:
+      # "RUTA/DEL/SERVIDOR:RUTA/DENTRO/DEL/CONTENEDOR"
+      - "/home/francisco_elisea/django/proyecto:/usr/src/django/library"
+    ports:
+      - "9009:8009"
+    networks:
+      - our-library-net
+
+networks:
+  our-library-net:
+    external: true
+    driver: bridge
